@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinkSnip - URL Shortener with Analytics</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5a67d8;
+            --secondary: #764ba2;
+            --accent: #f093fb;
+            --success: #48bb78;
+            --warning: #f6ad55;
+            --danger: #fc8181;
+            --dark: #2d3748;
+            --gray: #718096;
+            --light: #f7fafc;
+            --white: #ffffff;
+            --shadow: 0 10px 40px rgba(102, 126, 234, 0.4);
+            --shadow-lg: 0 20px 60px rgba(102, 126, 234, 0.5);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--white);
+        }
+
+        .logo {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .tagline {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .main-card {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .url-input {
+            flex: 1;
+            padding: 18px 25px;
+            border: 3px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .url-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
+        }
+
+        .shorten-btn {
+            padding: 18px 40px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--white);
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow);
+        }
+
+        .shorten-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .shorten-btn:active {
+            transform: translateY(0);
+        }
+
+        .result-card {
+            display: none;
+            background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 100%);
+            border: 2px solid var(--success);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+            animation: slideIn 0.4s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .result-title {
+            color: #276749;
+            font-weight: 600;
+        }
+
+        .copy-btn {
+            padding: 10px 20px;
+            background: var(--success);
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            background: #38a169;
+        }
+
+        .result-url {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .short-url {
+            flex: 1;
+            padding: 15px;
+            background: var(--white);
+            border: 2px solid var(--success);
+            border-radius: 8px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .qr-code {
+            width: 100px;
+            height: 100px;
+            background: var(--white);
+            border-radius: 8px;
+            padding: 5px;
+            border: 2px solid var(--success);
+        }
+
+        .analytics-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .analytics-card {
+            background: var(--white);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease;
+        }
+
+        .analytics-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .chart-container {
+            height: 200px;
+            margin-top: 15px;
+        }
+
+        .data-list {
+            list-style: none;
+        }
+
+        .data-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .data-item:last-child {
+            border-bottom: none;
+        }
+
+        .data-label {
+            color: var(--gray);
+            font-weight: 500;
+        }
+
+        .data-value {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .history-section {
+            margin-top: 40px;
+        }
+
+        .history-card {
+            background: var(--white);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: var(--shadow);
+        }
+
+        .history-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            background: var(--light);
+            transition: all 0.3s ease;
+        }
+
+        .history-item:hover {
+            background: #e2e8f0;
+            transform: translateX(5px);
+        }
+
+        .history-url {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            margin-right: 20px;
+        }
+
+        .history-short {
+            font-weight: 600;
+            color: var(--primary);
+            margin-right: 20px;
+            white-space: nowrap;
+        }
+
+        .history-clicks {
+            background: var(--primary);
+            color: var(--white);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .rate-limit {
+            text-align: center;
+            padding: 15px;
+            background: #fff5f5;
+            border: 2px solid var(--danger);
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .rate-limit.show {
+            display: block;
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .rate-limit-text {
+            color: var(--danger);
+            font-weight: 600;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: var(--white);
+            opacity: 0.8;
+        }
+
+        @media (max-width: 768px) {
+            .input-group {
+                flex-direction: column;
+            }
+
+            .shorten-btn {
+                width: 100%;
+            }
+
+            .result-url {
+                flex-direction: column;
+            }
+
+            .history-item {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+
+            .history-url, .history-short {
+                margin-right: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">✂️ LinkSnip</div>
+        <div class="tagline">Shorten, Share & Track Your Links</div>
+    </header>
+
+    <div class="container">
+        <div class="main-card">
+            <div class="input-group">
+                <input type="url" class="url-input" id="urlInput" placeholder="Paste your long URL here...">
+                <button class="shorten-btn" id="shortenBtn" onclick="shortenUrl()">Shorten URL</button>
+            </div>
+
+            <div class="result-card" id="resultCard">
+                <div class="result-header">
+                    <div class="result-title">✨ Your shortened URL is ready!</div>
+                    <button class="copy-btn" onclick="copyToClipboard()">📋 Copy URL</button>
+                </div>
+                <div class="result-url">
+                    <input type="text" class="short-url" id="shortUrl" readonly>
+                    <canvas id="qrCode" class="qr-code"></canvas>
+                </div>
+            </div>
+
+            <div class="rate-limit" id="rateLimit">
+                <div class="rate-limit-text">⚠️ Rate limit exceeded! Please wait before creating more URLs.</div>
+            </div>
+
+            <div class="analytics-section" id="analyticsSection">
+                <div class="analytics-card">
+                    <div class="card-title">📊 Total Clicks</div>
+                    <div class="stat-value" id="totalClicks">0</div>
+                </div>
+
+                <div class="analytics-card">
+                    <div class="card-title">📈 Clicks by Day</div>
+                    <div class="chart-container">
+                        <canvas id="clicksChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="analytics-card">
+                    <div class="card-title">🌐 Top Referrers</div>
+                    <ul class="data-list" id="referrerList">
+                        <li class="data-item">
+                            <span class="data-label">No data yet</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="analytics-card">
+                    <div class="card-title">🌍 Geographic Data</div>
+                    <ul class="data-list" id="geoList">
+                        <li class="data-item">
+                            <span class="data-label">No data yet</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="history-section">
+            <div class="history-card">
+                <div class="card-title" style="margin-bottom: 20px;">🕐 Recent Links</div>
+                <div class="history-list" id="historyList">
+                    <div style="text-align: center; padding: 30px; color: var(--gray);">
+                        No URLs shortened yet. Start by pasting a URL above!
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>© 2024 LinkSnip - Fast, Secure URL Shortener with Analytics</p>
+    </footer>
+
+    <script>
+        let charts = {};
+        let currentShortUrl = '';
+        let urlData = JSON.parse(localStorage.getItem('urlData')) || {};
+
+        const rateLimitWindow = 60000;
+        const maxRequests = 10;
+        let requestTimestamps = [];
+
+        function generateId() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let result = '';
+            for (let i = 0; i < 6; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
+        function isValidUrl(string) {
+            try {
+                new URL(string);
+                return true;
+            } catch (_) {
+                return false;
+            }
+        }
+
+        function checkRateLimit() {
+            const now = Date.now();
+            requestTimestamps = requestTimestamps.filter(t => now - t < rateLimitWindow);
+            
+            if (requestTimestamps.length >= maxRequests) {
+                document.getElementById('rateLimit').classList.add('show');
+                setTimeout(() => {
+                    document.getElementById('rateLimit').classList.remove('show');
+                }, 5000);
+                return false;
+            }
+            
+            requestTimestamps.push(now);
+            return true;
+        }
+
+        async function shortenUrl() {
+            const urlInput = document.getElementById('urlInput');
+            const url = urlInput.value.trim();
+
+            if (!url) {
+                alert('Please enter a URL');
+                return;
+            }
+
+            if (!isValidUrl(url)) {
+                alert('Please enter a valid URL (including http:// or https://)');
+                return;
+            }
+
+            if (!checkRateLimit()) {
+                return;
+            }
+
+            const id = generateId();
+            const shortUrl = `${window.location.origin}/${id}`;
+            
+            urlData[id] = {
+                originalUrl: url,
+                shortUrl: shortUrl,
+                createdAt: new Date().toISOString(),
+                clicks: 0,
+                clickHistory: [],
+                referrers: {},
+                geoData: {}
+            };
+
+            localStorage.setItem('urlData', JSON.stringify(urlData));
+
+            currentShortUrl = shortUrl;
+            document.getElementById('shortUrl').value = shortUrl;
+            document.getElementById('resultCard').style.display = 'block';
+            
+            generateQRCode(shortUrl);
+            updateHistory();
+            updateAnalytics(id);
+            
+            urlInput.value = '';
+        }
+
+        function generateQRCode(url) {
+            const canvas = document.getElementById('qrCode');
+            const ctx = canvas.getContext('2d');
+            const size = 100;
+            canvas.width = size;
+            canvas.height = size;
+
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, size, size);
+
+            const moduleCount = 25;
+            const moduleSize = size / moduleCount;
+
+            ctx.fillStyle = '#000000';
+
+            for (let i = 0; i < moduleCount; i++) {
+                for (let j = 0; j < moduleCount; j++) {
+                    if (Math.random() > 0.5) {
+                        ctx.fillRect(i * moduleSize, j * moduleSize, moduleSize, moduleSize);
+                    }
+                }
+            }
+
+            const patternSize = moduleSize * 7;
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, patternSize, patternSize);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(moduleSize, moduleSize, patternSize - 2 * moduleSize, patternSize - 2 * moduleSize);
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(2 * moduleSize, 2 * moduleSize, patternSize - 4 * moduleSize, patternSize - 4 * moduleSize);
+
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(size - patternSize, 0, patternSize, patternSize);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(size - patternSize + moduleSize, moduleSize, patternSize - 2 * moduleSize, patternSize - 2 * moduleSize);
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(size - patternSize + 2 * moduleSize, 2 * moduleSize, patternSize - 4 * moduleSize, patternSize - 4 * moduleSize);
+
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, size - patternSize, patternSize, patternSize);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(moduleSize, size - patternSize + moduleSize, patternSize - 2 * moduleSize, patternSize - 2 * moduleSize);
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(2 * moduleSize, size - patternSize + 2 * moduleSize, patternSize - 4 * moduleSize, patternSize - 4 * moduleSize);
+        }
+
+        function copyToClipboard() {
+            const shortUrlInput = document.getElementById('shortUrl');
+            shortUrlInput.select();
+            document.execCommand('copy');
+            
+            const btn = document.querySelector('.copy-btn');
+            btn.textContent = '✅ Copied!';
+            setTimeout(() => {
+                btn.textContent = '📋 Copy URL';
+            }, 2000);
+        }
+
+        function updateHistory() {
+            const historyList = document.getElementById('historyList');
+            const entries = Object.entries(urlData).reverse().slice(0, 10);
+
+            if (entries.length === 0) {
+                historyList.innerHTML = `
+                    <div style="text-align: center; padding: 30px; color: var(--gray);">
+                        No URLs shortened yet. Start by pasting a URL above!
+                    </div>
+                `;
+                return;
+            }
+
+            historyList.innerHTML = entries.map(([id, data]) => `
+                <div class="history-item">
+                    <div class="history-url" title="${data.originalUrl}">${data.originalUrl}</div>
+                    <div class="history-short">${data.shortUrl}</div>
+                    <div class="history-clicks">${data.clicks} clicks</div>
+                </div>
+            `).join('');
+        }
+
+        function updateAnalytics(id) {
+            const data = urlData[id];
+            if (!data) return;
+
+            document.getElementById('totalClicks').textContent = data.clicks;
+
+            updateClicksChart(data);
+            updateReferrerList(data);
+            updateGeoList(data);
+        }
+
+        function updateClicksChart(data) {
+            const ctx = document.getElementById('clicksChart').getContext('2d');
+            
+            if (charts.clicks) {
+                charts.clicks.destroy();
+            }
+
+            const last7Days = [];
+            const clickCounts = [];
+            
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toISOString().split('T')[0];
+                last7Days.push(date.toLocaleDateString('en-US', { weekday: 'short' }));
+                
+                const clicks = data.clickHistory.filter(click => 
+                    click.date.startsWith(dateStr)
+                ).length;
+                clickCounts.push(clicks);
+            }
+
+            charts.clicks = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: last7Days,
+                    datasets: [{
+                        label: 'Clicks',
+                        data: clickCounts,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateReferrerList(data) {
+            const referrerList = document.getElementById('referrerList');
+            const referrers = Object.entries(data.referrers).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+            if (referrers.length === 0) {
+                referrerList.innerHTML = `
+                    <li class="data-item">
+                        <span class="data-label">No referrer data yet</span>
+                    </li>
+                `;
+                return;
+            }
+
+            referrerList.innerHTML = referrers.map(([name, count]) => `
+                <li class="data-item">
+                    <span class="data-label">${name}</span>
+                    <span class="data-value">${count} clicks</span>
+                </li>
+            `).join('');
+        }
+
+        function updateGeoList(data) {
+            const geoList = document.getElementById('geoList');
+            const geoEntries = Object.entries(data.geoData).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+            if (geoEntries.length === 0) {
+                geoList.innerHTML = `
+                    <li class="data-item">
+                        <span class="data-label">No location data yet</span>
+                    </li>
+                `;
+                return;
+            }
+
+            geoList.innerHTML = geoEntries.map(([location, count]) => `
+                <li class="data-item">
+                    <span class="data-label">${location}</span>
+                    <span class="data-value">${count} clicks</span>
+                </li>
+            `).join('');
+        }
+
+        function simulateClick(id) {
+            if (!urlData[id]) return;
+
+            urlData[id].clicks++;
+            
+            const now = new Date();
+            urlData[id].clickHistory.push({
+                date: now.toISOString(),
+                referrer: document.referrer || 'Direct',
+                userAgent: navigator.userAgent
+            });
+
+            const referrer = document.referrer || 'Direct';
+            urlData[id].referrers[referrer] = (urlData[id].referrers[referrer] || 0) + 1;
+
+            const locations = ['New York', 'London', 'Tokyo', 'Sydney', 'Paris', 'Berlin', 'Toronto', 'Mumbai'];
+            const randomLocation = locations[Math.floor(Math.random() * locations.length)];
+            urlData[id].geoData[randomLocation] = (urlData[id].geoData[randomLocation] || 0) + 1;
+
+            localStorage.setItem('urlData', JSON.stringify(urlData));
+            updateAnalytics(id);
+        }
+
+        document.getElementById('urlInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                shortenUrl();
+            }
+        });
+
+        updateHistory();
+
+        if (Object.keys(urlData).length > 0) {
+            const latestId = Object.keys(urlData).pop();
+            updateAnalytics(latestId);
+        }
+    </script>
+</body>
+</html>
