@@ -1,85 +1,117 @@
-# LinkSnip - URL Shortener with Analytics
+<h1 align="center">🔗 URL Shortener</h1>
 
-A modern, beautiful URL shortener with built-in analytics dashboard. Create short links, track clicks, and analyze your traffic with an intuitive interface.
+<p align="center">
+  <em>Full-stack URL shortening service with analytics, QR codes, and click tracking</em>
+</p>
 
-## Features
+<p align="center">
+  <a href="https://knight-rule.github.io/url-shortener"><img src="https://img.shields.io/badge/demo-live-brightgreen" alt="Live Demo"></a>
+  <img src="https://img.shields.io/badge/Node.js-339933?style=flat&logo=node.js&logoColor=white" alt="Node.js">
+  <img src="https://img.shields.io/badge/Express-000000?style=flat&logo=express&logoColor=white" alt="Express">
+  <img src="https://img.shields.io/badge/nanoid-3.3-blue" alt="nanoid">
+  <img src="https://img.shields.io/badge/Chart.js-FF6384?style=flat&logo=chart.js&logoColor=white" alt="Chart.js">
+</p>
 
-- **Instant URL Shortening** - Paste any URL and get a short link in seconds
-- **QR Code Generation** - Automatic QR code for each shortened URL
-- **Analytics Dashboard** - Track total clicks, daily trends, referrers, and geographic data
-- **Click History** - Detailed logs of every click with timestamps
-- **Copy to Clipboard** - One-click copying of shortened URLs
-- **Rate Limiting** - Built-in protection against abuse
-- **Responsive Design** - Works perfectly on desktop and mobile
-- **Local Storage** - Data persists in your browser (no external database needed)
+---
 
-## Tech Stack
+## ✨ Features
 
-- **Frontend**: HTML5, CSS3 (Gradient Design), Vanilla JavaScript
-- **Backend**: Node.js, Express.js
-- **Storage**: JSON file storage (server-side) + LocalStorage (client-side)
-- **Charts**: Chart.js for analytics visualization
-- **QR Codes**: Canvas-based QR generation
+- [x] **URL Shortening** — Generate short, unique URLs with nanoid
+- [x] **Click Analytics** — Track every click with timestamps and referrer data
+- [x] **QR Code Generation** — Instantly create QR codes for any shortened URL
+- [x] **7-Day Click Chart** — Visualize click trends over the past week
+- [x] **Geo Data** — See where your clicks are coming from
+- [x] **Rate Limiting** — Prevent abuse with configurable rate limits
+- [x] **URL History** — Browse all previously shortened URLs
+- [x] **JSON Persistence** — Data survives server restarts
 
-## Installation
+## 📸 Screenshot
 
-1. Clone or download this project
-2. Navigate to the project directory:
-   ```bash
-   cd 02-url-shortener
-   ```
-3. Install dependencies:
-   ```bash
-   npm install
-   ```
-4. Start the server:
-   ```bash
-   npm start
-   ```
-5. Open your browser and visit `http://localhost:3000`
+![screenshot](screenshot.png)
 
-## API Endpoints
+## 🛠️ Tech Stack
 
-- `POST /api/shorten` - Create a new shortened URL
-  - Body: `{ "url": "https://example.com/very/long/url" }`
-  - Response: `{ "id": "abc123", "shortUrl": "http://localhost:3000/abc123", "originalUrl": "..." }`
+| Technology | Purpose |
+|------------|---------|
+| Node.js | Server runtime |
+| Express | HTTP server and routing |
+| nanoid | URL-safe unique ID generation |
+| Chart.js | Analytics data visualization |
 
-- `GET /api/stats/:id` - Get analytics for a shortened URL
-  - Response: Click count, click history, referrers, and geographic data
+## 🚀 Installation
 
-- `GET /:id` - Redirect to the original URL
+```bash
+# Clone the repository
+git clone https://github.com/knight-rule/url-shortener.git
 
-## Project Structure
+# Navigate to the project
+cd url-shortener
 
-```
-02-url-shortener/
-├── public/
-│   └── index.html          # Frontend UI
-├── server.js               # Express backend
-├── package.json            # Dependencies
-├── urls.json               # Stored URL data (auto-generated)
-└── README.md               # This file
+# Install dependencies
+npm install
+
+# Start the server
+npm start
 ```
 
-## How It Works
+The server will start at `http://localhost:3000`
 
-1. Paste a long URL in the input field
-2. Click "Shorten URL" to generate a short link
-3. Copy the short URL or scan the QR code
-4. View analytics in the dashboard below
-5. Track clicks, referrers, and geographic data in real-time
+## 📖 Usage
 
-## Browser Compatibility
+1. **Shorten a URL** — Paste any long URL into the input field and click "Shorten"
+2. **Copy the short link** — Click the copy button to grab your new short URL
+3. **View QR Code** — Click the QR icon to generate a scannable code
+4. **Check Analytics** — Click "Stats" to see click count, geo data, and trends
+5. **Browse History** — View all shortened URLs in the history panel
 
-- Chrome 60+
-- Firefox 55+
-- Safari 11+
-- Edge 79+
+```bash
+# API Usage
+POST /api/shorten
+Body: { "url": "https://example.com/very/long/path" }
 
-## License
+GET /:shortId          # Redirect to original URL
+GET /api/stats/:shortId # Get click analytics
+```
 
-MIT License - feel free to use and modify for your projects.
+## ⚙️ How It Works
 
-## Author
+```
+┌──────────────────┐
+│   Original URL   │
+└────────┬─────────┘
+         ▼
+┌──────────────────┐    ┌──────────────────┐
+│  nanoid generates │───▶│  Stored in JSON  │
+│  unique short ID  │    │  with metadata   │
+└──────────────────┘    └────────┬─────────┘
+                                 ▼
+┌──────────────────┐    ┌──────────────────┐
+│  Short URL       │◀───│  Redirect on     │
+│  returned to     │    │  visit + log     │
+│  user            │    │  analytics       │
+└──────────────────┘    └──────────────────┘
+```
 
-Created as a portfolio project demonstrating full-stack development skills.
+When a user visits the short URL, the server looks up the original URL, logs the click event (timestamp, referrer, geo), and issues a 301 redirect.
+
+## 🤝 Contributing
+
+Contributions are welcome! Feel free to:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+
+## 👨‍💻 Author
+
+**Prashant** — [@knight-rule](https://github.com/knight-rule)
+
+<p align="center">
+  Made with ❤️ for developers who love clean URLs
+</p>
